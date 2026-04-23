@@ -1,4 +1,4 @@
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/52127478-5f07-4f13-b0c6-434ce19cd884" /># 📄 Document Chat AI
+# 📄 Document Chat AI
 
 Bu proje, yüklediğiniz dokümanlar ile sohbet etmenizi sağlayan bir yapay zeka uygulamasıdır.
 
