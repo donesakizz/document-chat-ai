@@ -1,58 +1,49 @@
-# 📄 Document Chat AI
+📄 Document Chat AI
 
-Bu proje, yüklediğiniz dokümanlar ile sohbet etmenizi sağlayan bir yapay zeka uygulamasıdır.
+Bu proje, kullanıcıların yüklediği dokümanlar (PDF, DOCX, TXT) ile sohbet edebilmesini sağlayan bir yapay zeka uygulamasıdır.
+Kullanıcılar dokümanlara soru sorabilir, özet çıkarabilir ve içerikten bilgi elde edebilir.
 
-## 🚀 Özellikler
-
-- PDF, DOCX, TXT dosya yükleme
-- Doküman üzerinden soru-cevap
-- Otomatik özetleme
-- Kaynak gösterme
-- RAG (Retrieval-Augmented Generation)
-
-## 🧠 Kullanılan Teknolojiler
-
-- Python
-- Streamlit
-- LangChain
-- ChromaDB
-- HuggingFace Embeddings
-- Groq LLM
-
-## ⚙️ Kurulum
-
-### 1. Repoyu klonla
+🚀 Özellikler
+📂 PDF, DOCX ve TXT dosya yükleme
+💬 Doküman üzerinden soru-cevap (RAG sistemi)
+📌 Otomatik özetleme
+📄 Kaynak (source) gösterme
+👤 Yazar bilgisi çıkarımı
+📚 Çoklu doküman desteği
+🧠 Kullanılan Teknolojiler
+Python
+Streamlit
+LangChain
+ChromaDB (Vector Database)
+HuggingFace Embeddings
+Groq LLM (LLaMA 3)
+⚙️ Kurulum
+1. Repoyu klonla
 git clone https://github.com/donesakizz/document-chat-ai.git
-
 cd document-chat-ai
-
-### 2. Paketleri yükle
+2. Gerekli paketleri yükle
 pip install -r requirements.txt
+3. API anahtarını ekle
 
-### 3. .env oluştur
+Proje klasöründe .env dosyası oluştur ve içine yaz:
+
 GROQ_API_KEY=your_api_key_here
-
-### 4. Çalıştır
+4. Uygulamayı çalıştır
 streamlit run app.py
 
-## 📸 Ekran Görüntüleri
+🏗️ Nasıl Çalışır?
+Kullanıcı doküman yükler
+Doküman metne dönüştürülür
+Metin küçük parçalara bölünür (chunking)
+Bu parçalar embedding’e dönüştürülür
+Embedding’ler vector database’e kaydedilir
+Kullanıcı soru sorduğunda ilgili parçalar bulunur
+LLM bu parçaları kullanarak cevap üretir
+✨ Ekstra Özellikler
+🔍 Cevaplara kaynak gösterme
+🧠 Yazar bilgisi gibi özel veri çıkarımı
+⚡ Hızlı ve kullanıcı dostu arayüz
+🎯 Amaç
 
-![Upload](screenshots/upload.png)
-![Chat](screenshots/chat.png)
-![Summary](screenshots/summary.png)
-
-## 🏗️ Mimari
-
-- Doküman yükleme
-- Metne çevirme
-- Chunking
-- Embedding
-- Vector DB
-- Retrieval
-- LLM cevap üretimi
-
-## ✨ Bonus
-
-- Kaynak gösterme
-- Çoklu doküman desteği
-- Özetleme
+Bu projenin amacı, kullanıcıların kendi dokümanları üzerinde
+hızlı, doğru ve kaynaklı bilgiye ulaşmasını sağlamaktır.
