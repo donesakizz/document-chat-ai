@@ -46,4 +46,8 @@ LLM bu parçaları kullanarak cevap üretir
 🎯 Amaç
 
 Bu projenin amacı, kullanıcıların kendi dokümanları üzerinde
+
 hızlı, doğru ve kaynaklı bilgiye ulaşmasını sağlamaktır.
+
+hızlı, doğru ve kaynaklı bilgiye ulaşmasını sağlamaktır.
+

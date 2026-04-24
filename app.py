@@ -31,6 +31,7 @@ st.caption("PDF, DOCX ve TXT dosyaları ile soru-cevap yapabilirsiniz")
 uploaded_files = st.file_uploader("Dosya yükle", accept_multiple_files=True)
 
 documents = []
+first_page_text = ""
 
 # 📂 DOSYA YÜKLEME
 if uploaded_files:
@@ -46,22 +47,30 @@ if uploaded_files:
         else:
             loader = TextLoader(file_path)
 
-        documents.extend(loader.load())
+        loaded_docs = loader.load()
+        documents.extend(loaded_docs)
 
-    # ✂️ CHUNKING
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        # 🔥 ilk sayfa
+        if not first_page_text:
+            first_page_text = loaded_docs[0].page_content
+
+    # ✂️ CHUNK
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200
+    )
     texts = splitter.split_documents(documents)
 
-    # ⚡ CACHE'LENMİŞ VECTOR DB
+    # ⚡ DB
     @st.cache_resource
     def create_db(texts):
         embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
         return Chroma.from_documents(texts, embeddings)
 
     db = create_db(texts)
-    retriever = db.as_retriever()
+    retriever = db.as_retriever(search_kwargs={"k": 5})
 
-    # 🤖 LLM
+    # 🤖 MODEL
     llm = ChatGroq(
         model_name="llama-3.3-70b-versatile",
         temperature=0
@@ -69,49 +78,71 @@ if uploaded_files:
 
     st.success("✅ Dokümanlar hazır!")
 
-    # 📥 INPUT + BUTTON
+    # 📥 INPUT
     col1, col2 = st.columns([5, 1])
-
     with col1:
         query = st.text_input("Soru sor:", key="input")
-
     with col2:
         send = st.button("Gönder")
 
-    # 💬 SORU SORULDUĞUNDA
+    # 💬 SORU
     if query and send:
         with st.spinner("🤖 AI düşünüyor..."):
-            docs = retriever.invoke(query)
 
-            context = "\n".join([doc.page_content for doc in docs])
+            docs = []
 
-            prompt = f"""
-            Aşağıdaki dokümanlara göre soruyu cevapla:
+            # 🔥 YAZAR SORUSU → kaynaklı çözüm
+            if "yazar" in query.lower():
+                docs = texts[:2]  # ilk sayfa chunkları
+                context = "\n\n".join([doc.page_content for doc in docs])
 
-            {context}
+                prompt = f"""
+                Aşağıdaki metinden makalenin yazar isimlerini çıkar.
 
-            Soru: {query}
-            """
+                Metin:
+                {context}
+
+                Sadece isimleri virgülle ayırarak yaz.
+                """
+
+            else:
+                docs = retriever.invoke(query)
+                docs = docs + texts[:2]
+
+                context = "\n\n".join([doc.page_content for doc in docs])[:4000]
+
+                prompt = f"""
+                Aşağıdaki dokümanlara göre soruyu cevapla.
+
+                Eğer bilgi dokümanda varsa ASLA "bulamadım" deme.
+                Tahmin etme.
+
+                Doküman:
+                {context}
+
+                Soru:
+                {query}
+                """
 
             answer = llm.invoke(prompt)
 
-            # 💾 CHAT MEMORY
+            # 💾 CHAT
             st.session_state.messages.append(("user", query))
             st.session_state.messages.append(("ai", answer.content))
 
-    # 💬 CHAT GÖRÜNÜMÜ
+    # 💬 CHAT
     if st.session_state.messages:
         st.subheader("💬 Sohbet")
-
         for role, msg in st.session_state.messages:
             if role == "user":
                 st.markdown(f"🧑 **Sen:** {msg}")
             else:
                 st.markdown(f"🤖 **AI:** {msg}")
 
-    # 📄 KAYNAKLAR (GÜZEL GÖRÜNÜM)
-    if query and send:
+    # 📄 KAYNAK
+    if query and send and docs:
         st.subheader("📄 Kaynaklar")
+        st.markdown("📌 **Bu cevap aşağıdaki kaynaklardan üretildi**")
 
         for i, doc in enumerate(docs):
             with st.expander(f"Kaynak {i+1}"):
@@ -119,13 +150,11 @@ if uploaded_files:
                 st.markdown(f"**Sayfa:** {doc.metadata.get('page','')}")
                 st.write(doc.page_content[:300] + "...")
 
-    # 🔥 ÖZETLEME
+    # 🔥 ÖZET
     if st.button("📌 Dokümanları Özetle"):
         with st.spinner("🧠 Özet hazırlanıyor..."):
             all_text = "\n".join([doc.page_content for doc in texts])
-
-            summary_prompt = f"Bu dokümanları özetle:\n{all_text[:3000]}"
-            summary = llm.invoke(summary_prompt)
+            summary = llm.invoke(f"Bu dokümanları özetle:\n{all_text[:3000]}")
 
             st.subheader("📌 Özet")
             st.write(summary.content)
